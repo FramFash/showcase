@@ -22,33 +22,69 @@ jobs:
           
       - run: npm ci
       
-      # DEBUG: Show what files exist before build
+      # Show package.json to debug
+      - name: Show package.json
+        run: cat package.json
+      
+      # List all files before build
       - name: List files before build
         run: |
-          echo "Files in current directory:"
+          echo "=== All files ==="
           ls -la
           echo ""
-          echo "Checking if src directory exists:"
-          ls -la src || echo "No src directory!"
+          echo "=== src directory ==="
+          ls -la src || echo "No src directory"
+          echo ""
+          echo "=== src/routes directory ==="
+          ls -la src/routes || echo "No routes directory"
       
-      - run: npm run build
-      
-      # DEBUG: Show what files exist after build
-      - name: List files after build
+      # Try to build and capture output
+      - name: Build the site
+        id: build
         run: |
-          echo "Files in current directory:"
-          ls -la
-          echo ""
-          echo "Checking for build directory:"
+          echo "Running build..."
+          npm run build 2>&1 | tee build-output.log
+          BUILD_EXIT=${PIPESTATUS[0]}
+          echo "Build exit code: $BUILD_EXIT"
+          echo "exit_code=$BUILD_EXIT" >> $GITHUB_OUTPUT
+          exit $BUILD_EXIT
+        continue-on-error: true
+      
+      # Show build output
+      - name: Show build output
+        run: |
+          echo "=== Build Output ==="
+          if [ -f build-output.log ]; then
+            cat build-output.log
+          else
+            echo "No build output log found!"
+          fi
+      
+      # Check if build directory exists
+      - name: Check build directory
+        run: |
+          echo "=== Checking for build directory ==="
           if [ -d "build" ]; then
-            echo "Build directory exists! Contents:"
+            echo "✅ Build directory exists!"
             ls -la build
           else
-            echo "Build directory does NOT exist!"
+            echo "❌ Build directory does NOT exist!"
             echo ""
-            echo "Looking for other possible build directories:"
-            find . -maxdepth 2 -type d \( -name "build" -o -name "dist" -o -name "public" \) 2>/dev/null || echo "No build directories found"
+            echo "=== Current directory contents ==="
+            ls -la
+            echo ""
+            echo "=== Looking for SvelteKit output ==="
+            find . -name ".svelte-kit" -type d 2>/dev/null || echo "No .svelte-kit found"
+            echo ""
+            echo "=== Build exit code was: ${{ steps.build.outputs.exit_code }} ==="
           fi
+      
+      # Fail the workflow if build directory doesn't exist
+      - name: Fail if no build
+        if: steps.build.outputs.exit_code != '0'
+        run: |
+          echo "❌ Build failed with exit code ${{ steps.build.outputs.exit_code }}"
+          exit 1
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
