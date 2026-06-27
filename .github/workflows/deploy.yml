@@ -22,42 +22,26 @@ jobs:
       
       - run: npm ci
       
-      - name: Show configuration
-        run: |
-          echo "=== svelte.config.js ==="
-          cat svelte.config.js
-          echo ""
-          echo "=== package.json scripts ==="
-          cat package.json | grep -A 5 '"scripts"'
-      
       - name: Clean and build
         run: |
           rm -rf .svelte-kit build
-          npm run build 2>&1 | tee build.log
-      
-      - name: Check build result
-        run: |
-          echo "=== Build log ==="
-          cat build.log
-          echo ""
-          echo "=== Check for build directory ==="
-          if [ -d "build" ]; then
-            echo "✅ Build directory exists with files:"
-            ls -la build
-            echo ""
-            echo "Build directory size:"
-            du -sh build
-          else
-            echo "❌ Build directory does NOT exist!"
-            echo "Current directory:"
-            ls -la
-            echo ""
-            echo "Looking for .svelte-kit:"
-            ls -la .svelte-kit 2>/dev/null || echo "No .svelte-kit found"
-            exit 1
-          fi
+          npm run build
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
