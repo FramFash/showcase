@@ -21,23 +21,36 @@ jobs:
           cache: 'npm'
           
       - run: npm ci
+      
+      # DEBUG: Show what files exist before build
+      - name: List files before build
+        run: |
+          echo "Files in current directory:"
+          ls -la
+          echo ""
+          echo "Checking if src directory exists:"
+          ls -la src || echo "No src directory!"
+      
       - run: npm run build
+      
+      # DEBUG: Show what files exist after build
+      - name: List files after build
+        run: |
+          echo "Files in current directory:"
+          ls -la
+          echo ""
+          echo "Checking for build directory:"
+          if [ -d "build" ]; then
+            echo "Build directory exists! Contents:"
+            ls -la build
+          else
+            echo "Build directory does NOT exist!"
+            echo ""
+            echo "Looking for other possible build directories:"
+            find . -maxdepth 2 -type d \( -name "build" -o -name "dist" -o -name "public" \) 2>/dev/null || echo "No build directories found"
+          fi
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./build
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    permissions:
-      pages: write
-      id-token: write
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
