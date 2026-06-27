@@ -19,72 +19,43 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
-          
+      
       - run: npm ci
       
-      # Show package.json to debug
-      - name: Show package.json
-        run: cat package.json
-      
-      # List all files before build
-      - name: List files before build
+      - name: Show configuration
         run: |
-          echo "=== All files ==="
-          ls -la
+          echo "=== svelte.config.js ==="
+          cat svelte.config.js
           echo ""
-          echo "=== src directory ==="
-          ls -la src || echo "No src directory"
+          echo "=== package.json scripts ==="
+          cat package.json | grep -A 5 '"scripts"'
+      
+      - name: Clean and build
+        run: |
+          rm -rf .svelte-kit build
+          npm run build 2>&1 | tee build.log
+      
+      - name: Check build result
+        run: |
+          echo "=== Build log ==="
+          cat build.log
           echo ""
-          echo "=== src/routes directory ==="
-          ls -la src/routes || echo "No routes directory"
-      
-      # Try to build and capture output
-      - name: Build the site
-        id: build
-        run: |
-          echo "Running build..."
-          npm run build 2>&1 | tee build-output.log
-          BUILD_EXIT=${PIPESTATUS[0]}
-          echo "Build exit code: $BUILD_EXIT"
-          echo "exit_code=$BUILD_EXIT" >> $GITHUB_OUTPUT
-          exit $BUILD_EXIT
-        continue-on-error: true
-      
-      # Show build output
-      - name: Show build output
-        run: |
-          echo "=== Build Output ==="
-          if [ -f build-output.log ]; then
-            cat build-output.log
-          else
-            echo "No build output log found!"
-          fi
-      
-      # Check if build directory exists
-      - name: Check build directory
-        run: |
-          echo "=== Checking for build directory ==="
+          echo "=== Check for build directory ==="
           if [ -d "build" ]; then
-            echo "✅ Build directory exists!"
+            echo "✅ Build directory exists with files:"
             ls -la build
+            echo ""
+            echo "Build directory size:"
+            du -sh build
           else
             echo "❌ Build directory does NOT exist!"
-            echo ""
-            echo "=== Current directory contents ==="
+            echo "Current directory:"
             ls -la
             echo ""
-            echo "=== Looking for SvelteKit output ==="
-            find . -name ".svelte-kit" -type d 2>/dev/null || echo "No .svelte-kit found"
-            echo ""
-            echo "=== Build exit code was: ${{ steps.build.outputs.exit_code }} ==="
+            echo "Looking for .svelte-kit:"
+            ls -la .svelte-kit 2>/dev/null || echo "No .svelte-kit found"
+            exit 1
           fi
-      
-      # Fail the workflow if build directory doesn't exist
-      - name: Fail if no build
-        if: steps.build.outputs.exit_code != '0'
-        run: |
-          echo "❌ Build failed with exit code ${{ steps.build.outputs.exit_code }}"
-          exit 1
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
