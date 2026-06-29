@@ -151,7 +151,7 @@
 </body>
 
 <div class="agradecimiento">
-  <h2>Adolfo Almazán Becerril</h2>
+  <h2>Adolfo A. B.</h2>
   <p>+52 5554178404</p><p>adolfoab@gmail.com</p>
   <h3>Muchas Gracias por su Atención</h3>
 </div>
@@ -159,12 +159,12 @@
 <style>
   body{
     margin: 0;
-    padding: 0;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 100%;
+    background-color: #f4f3ee;
   }
 
   @media (min-width: 1800px) {
@@ -186,7 +186,7 @@
     flex-direction: row;
     justify-content: space-evenly;
     align-items: center;
-    background-color: lightgray;
+    background-color: #e0afa0;
     height: 100px;
     width: 100%;
     font-size: 2rem;
@@ -229,6 +229,8 @@
     overflow-x: auto;
     height: 30vh;
     width: 100%;
+    background-color: #463f3a;
+    scrollbar-width: thin;
   }
 
   .card {
@@ -241,8 +243,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: black;
-    box-shadow: 3px 3px gray;
+    background-color: #8a817c;
+    box-shadow: 3px 3px black;
 
     h1 {
       width: 80%;
@@ -333,6 +335,7 @@
     justify-content: center;
     border: 1px solid black;
     box-shadow: 3px 3px gray;
+    background-color: #bcb8b1;
   }
 
   .conclusion {
